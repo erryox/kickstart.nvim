@@ -16,5 +16,16 @@ require('neo-tree').setup {
         ['\\'] = 'close_window',
       },
     },
+    filtered_items = {
+      visible = false,
+      hide_dotfiles = false,
+      -- hide_by_name = {
+      --   '.DS_Store',
+      -- },
+      never_show = {
+        '.git',
+        '.DS_Store',
+      },
+    },
   },
 }
