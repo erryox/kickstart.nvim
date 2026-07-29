@@ -22,14 +22,13 @@
       "rev": "86186af29eed2af1a069f9e36140d116a2765c80",
       "src": "https://github.com/nativerv/cyrillic.nvim"
     },
+    "edgy-group.nvim": {
+      "rev": "132b858ddd835c1c4a7d339ce1aee1f7e547f908",
+      "src": "https://github.com/lucobellic/edgy-group.nvim"
+    },
     "edgy.nvim": {
       "rev": "8bfd2808994a988c975694122f68624b8a219f5f",
-      "src": "https://github.com/erryox/edgy.nvim",
-      "version": "'feat/mouse-resize'"
-    },
-    "edgy.nvim.bak": {
-      "rev": "8bfd2808994a988c975694122f68624b8a219f5f",
-      "src": "https://github.com/erryox/edgy.nvim"
+      "src": "https://github.com/folke/edgy.nvim"
     },
     "fidget.nvim": {
       "rev": "82404b196e73a00b1727a91903beef5ddc319d22",
@@ -61,8 +60,7 @@
     },
     "love2d.nvim": {
       "rev": "ba7e1495c8df4a01c25a595f5c4dcd374f58d490",
-      "src": "https://github.com/erryox/love2d.nvim",
-      "version": "'fix/detection'"
+      "src": "https://github.com/S1M0N38/love2d.nvim"
     },
     "mason-lspconfig.nvim": {
       "rev": "21c5b3ebeaa0412e28096bb0701434c51c1fbf76",

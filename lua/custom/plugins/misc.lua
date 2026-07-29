@@ -11,8 +11,9 @@ end
 
 local plugins = {
   gh 'folke/snacks.nvim',
-  { src = gh 'erryox/edgy.nvim', version = 'feat/mouse-resize' },
-  { src = gh 'erryox/love2d.nvim', version = 'fix/detection' }, -- TODO: вернуть на S1M0N38/love2d.nvim после вливания PR #27
+  gh 'S1M0N38/love2d.nvim',
+  gh 'folke/edgy.nvim',
+  gh 'lucobellic/edgy-group.nvim',
 }
 
 vim.pack.add(plugins)
@@ -32,19 +33,71 @@ require('snacks').setup {
 require('edgy').setup {
   left = {
     {
-      ft = 'neo-tree',
       title = 'Neo-Tree',
-      size = { width = 30 },
+      ft = 'neo-tree',
       filter = function(buf) return vim.b[buf].neo_tree_source == 'filesystem' end,
+      size = { width = 40 },
+      -- open = 'Neotree position=left filesystem',
+    },
+    {
+      title = 'Neo-Tree Git',
+      ft = 'neo-tree',
+      filter = function(buf) return vim.b[buf].neo_tree_source == 'git_status' end,
+      size = { width = 40 },
+      -- open = 'Neotree position=right git_status',
+    },
+  },
+  right = {
+    {
+      ft = 'dapui_scopes',
+      title = 'Debug Scopes',
+      size = { width = 40 },
+      -- open = function() require('dapui').open() end,
+    },
+    {
+      ft = 'dapui_breakpoints',
+      title = 'Debug Breakpoints',
+      size = { width = 40 },
+      -- open = function() require('dapui').open() end,
+    },
+    {
+      ft = 'dapui_stacks',
+      title = 'Debug Stacks',
+      size = { width = 40 },
+      -- open = function() require('dapui').open() end,
+    },
+    {
+      ft = 'dapui_watches',
+      title = 'Debug Watches',
+      size = { width = 40 },
+      -- open = function() require('dapui').open() end,
+    },
+    {
+      ft = 'neotest-summary',
+      title = 'Neotest Summary',
+      size = { width = 40 },
+      open = function() require('neotest').summary.open() end,
     },
   },
   bottom = {
     {
       ft = 'toggleterm',
-      size = { height = 0.3 },
-      -- toggleterm can also open as a float; only dock split terminals
+      title = 'Toggleterm',
+      size = { height = 0.2 },
       filter = function(_, win) return vim.api.nvim_win_get_config(win).relative == '' end,
     },
+    -- {
+    --   ft = 'dap-repl',
+    --   title = 'Debug REPL',
+    --   size = { height = 0.2 },
+    --   open = function() require('dapui').open() end,
+    -- },
+    -- {
+    --   ft = 'dapui_console',
+    --   title = 'Debug Console',
+    --   size = { height = 0.2 },
+    --   open = function() require('dapui').open() end,
+    -- },
   },
   animate = { enabled = false },
   wo = {
@@ -52,8 +105,35 @@ require('edgy').setup {
     winfixwidth = false,
     winfixheight = false,
   },
-  mouse_resize = true,
+  -- mouse_resize = true,
 }
+
+---@diagnostic disable: missing-fields
+require('edgy-group').setup {
+  groups = {
+    left = {
+      { icon = '', titles = { 'Neo-Tree' } },
+      { icon = '', titles = { 'Neo-Tree Git' } },
+      { icon = '', titles = { 'Outline' } },
+    },
+    right = {
+      { titles = { 'Neotest Summary' } },
+      { titles = { 'Debug Scopes', 'Debug Breakpoints', 'Debug Stack', 'Debug Watches' } },
+    },
+  },
+  statusline = {
+    separators = { ' ', ' ' },
+    clickable = true,
+    colored = true,
+    colors = {
+      active = 'PmenuSel',
+      inactive = 'Pmenu',
+    },
+  },
+}
+
+map('<leader>el', function() require('edgy-group').open_group_offset('right', 1) end, '')
+map('<leader>eh', function() require('edgy-group').open_group_offset('right', -1) end, '')
 
 local love_term = nil
 

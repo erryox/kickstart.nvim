@@ -42,20 +42,21 @@ local map = function(keys, func, desc, mode)
   vim.keymap.set(mode, keys, func, { desc = 'Neotest: ' .. desc })
 end
 
-local function with_clear(f, ...)
+local function wrap(f, ...)
+  vim.cmd 'wa'
   neotest.output_panel.clear()
   f(...)
 end
 
-map('<leader>ta', function() with_clear(neotest.run.attach) end, '[t]est [a]ttach')
-map('<leader>tf', function() with_clear(neotest.run.run, vim.fn.expand '%') end, '[t]est run [f]ile')
-map('<leader>tA', function() with_clear(neotest.run.run, vim.uv.cwd()) end, '[t]est [A]ll files')
-map('<leader>tS', function() with_clear(neotest.run.run, { suite = true }) end, '[t]est [S]uite')
-map('<leader>tn', function() with_clear(neotest.run.run) end, '[t]est [n]earest')
-map('<leader>tl', function() with_clear(neotest.run.run_last) end, '[t]est [l]ast')
+map('<leader>ta', function() wrap(neotest.run.attach) end, '[t]est [a]ttach')
+map('<leader>tf', function() wrap(neotest.run.run, vim.fn.expand '%') end, '[t]est run [f]ile')
+map('<leader>tA', function() wrap(neotest.run.run, vim.uv.cwd()) end, '[t]est [A]ll files')
+map('<leader>tS', function() wrap(neotest.run.run, { suite = true }) end, '[t]est [S]uite')
+map('<leader>tn', function() wrap(neotest.run.run) end, '[t]est [n]earest')
+map('<leader>tl', function() wrap(neotest.run.run_last) end, '[t]est [l]ast')
 map('<leader>ts', function() neotest.summary.toggle() end, '[t]est [s]ummary')
 map('<leader>to', function() neotest.output.open { enter = true, auto_close = true } end, '[t]est [o]utput')
 map('<leader>tO', function() neotest.output_panel.toggle() end, '[t]est [O]utput panel')
 map('<leader>tt', function() neotest.run.stop() end, '[t]est [t]erminate')
-map('<leader>td', function() with_clear(neotest.run.run, { suite = false, strategy = 'dap' }) end, 'Debug nearest test')
-map('<leader>tD', function() with_clear(neotest.run.run, { vim.fn.expand '%', strategy = 'dap' }) end, 'Debug current file') ---@diagnostic disable-line: missing-fields
+map('<leader>td', function() wrap(neotest.run.run, { suite = false, strategy = 'dap' }) end, 'Debug nearest test')
+map('<leader>tD', function() wrap(neotest.run.run, { vim.fn.expand '%', strategy = 'dap' }) end, 'Debug current file') ---@diagnostic disable-line: missing-fields

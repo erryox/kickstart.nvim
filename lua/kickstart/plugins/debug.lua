@@ -23,7 +23,10 @@ vim.keymap.set('n', '<F3>', function() require('dap').step_out() end, { desc = '
 vim.keymap.set('n', '<leader>b', function() require('dap').toggle_breakpoint() end, { desc = 'Debug: Toggle Breakpoint' })
 vim.keymap.set('n', '<leader>B', function() require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ') end, { desc = 'Debug: Set Breakpoint' })
 -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
-vim.keymap.set('n', '<F7>', function() require('dapui').toggle() end, { desc = 'Debug: See last session result.' })
+vim.keymap.set('n', '<F7>', function()
+  require('edgy-group').open_group_index('right', 1)
+  require('edgy-group').open_group_index('bottom', 2)
+end, { desc = 'Debug: See last session result.' })
 
 local dap = require 'dap'
 local dapui = require 'dapui'
