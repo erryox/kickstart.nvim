@@ -17,8 +17,8 @@ local dapui = require 'dapui'
 
 dapui.setup()
 
-dap.listeners.before.attach.dapui_config = function() dapui.open() end
-dap.listeners.before.launch.dapui_config = function() dapui.open() end
+dap.listeners.before.attach.dapui_config = function() dapui.open { reset = true } end
+dap.listeners.before.launch.dapui_config = function() dapui.open { reset = true } end
 dap.listeners.before.event_terminated.dapui_config = function() dapui.close() end
 dap.listeners.before.event_exited.dapui_config = function() dapui.close() end
 
@@ -47,7 +47,7 @@ map('<leader>dR', function() dap.clear_breakpoints() end, '[d]ebug [R]emove brea
 map('<leader>ds', function() dap.session() end, '[d]ebug [s]ession')
 map('<leader>dt', function() dap.terminate() end, '[d]ebug [t]erminate')
 
-map('<leader>du', function() dapui.toggle() end, 'toggle [d]ebug [u]i')
+map('<leader>du', function() dapui.toggle { reset = true } end, 'toggle [d]ebug [u]i')
 map('<leader>dw', function() require('dap.ui.widgets').hover() end, '[d]ebug [w]idgets')
 
 require('dap-go').setup()
