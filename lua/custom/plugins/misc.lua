@@ -86,26 +86,14 @@ require('edgy').setup {
       size = { height = 0.2 },
       filter = function(_, win) return vim.api.nvim_win_get_config(win).relative == '' end,
     },
-    -- {
-    --   ft = 'dap-repl',
-    --   title = 'Debug REPL',
-    --   size = { height = 0.2 },
-    --   open = function() require('dapui').open() end,
-    -- },
-    -- {
-    --   ft = 'dapui_console',
-    --   title = 'Debug Console',
-    --   size = { height = 0.2 },
-    --   open = function() require('dapui').open() end,
-    -- },
   },
   animate = { enabled = false },
   wo = {
     winbar = false,
-    winfixwidth = false,
-    winfixheight = false,
   },
-  -- mouse_resize = true,
+  mouse_resize = {
+    enabled = true,
+  },
 }
 
 ---@diagnostic disable: missing-fields

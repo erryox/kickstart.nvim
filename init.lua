@@ -879,6 +879,9 @@ do
       settings = {
         Lua = {
           format = { enable = false }, -- Disable formatting (formatting is done by stylua)
+          diagnostics = {
+            unusedLocalExclude = { '_*' },
+          },
         },
       },
     },
