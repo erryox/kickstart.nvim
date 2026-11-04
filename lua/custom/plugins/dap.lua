@@ -1,35 +1,37 @@
----Because most plugins are hosted on GitHub, you can use the helper
----function to have less repetition in the following sections.
----@param repo string
----@return string
-local function gh(repo) return 'https://github.com/' .. repo end
-
-local dap_plugins = {
-  gh 'mfussenegger/nvim-dap',
-  gh 'rcarriga/nvim-dap-ui',
-  gh 'leoluz/nvim-dap-go',
-}
-
-vim.pack.add(dap_plugins)
-
+-- The shared DAP setup is loaded by kickstart.plugins.debug before this module.
 local dap = require 'dap'
 local dapui = require 'dapui'
 
-dapui.setup()
-
-dap.listeners.before.attach.dapui_config = function() dapui.open { reset = true } end
-dap.listeners.before.launch.dapui_config = function() dapui.open { reset = true } end
-dap.listeners.before.event_terminated.dapui_config = function() dapui.close() end
-dap.listeners.before.event_exited.dapui_config = function() dapui.close() end
-
 local map = function(keys, func, desc, mode)
   mode = mode or 'n'
-  vim.keymap.set(mode, keys, func, { desc = 'Neotest: ' .. desc })
+  vim.keymap.set(mode, keys, func, { desc = 'Debug: ' .. desc })
 end
 
-map('<down>', dap.step_over, 'debug: step over')
-map('<right>', dap.step_into, 'debug: step into')
-map('<left>', dap.step_out, 'debug: step out')
+-- Preserve the user's normal-mode mappings outside a debug session.
+local saved_arrows = nil
+local function enable_debug_arrows()
+  if saved_arrows then return end
+  saved_arrows = {}
+  for key, action in pairs { ['<Down>'] = dap.step_over, ['<Right>'] = dap.step_into, ['<Left>'] = dap.step_out } do
+    saved_arrows[key] = {}
+    for _, mapping in ipairs(vim.api.nvim_get_keymap 'n') do
+      if mapping.lhs == key then saved_arrows[key] = mapping end
+    end
+    vim.keymap.set('n', key, action, { desc = 'Debug: step' })
+  end
+end
+local function restore_arrows()
+  if not saved_arrows then return end
+  for key, mapping in pairs(saved_arrows) do
+    vim.keymap.del('n', key)
+    if next(mapping) then vim.fn.mapset('n', false, mapping) end
+  end
+  saved_arrows = nil
+end
+dap.listeners.after.event_initialized.custom_arrows = enable_debug_arrows
+dap.listeners.before.event_terminated.custom_arrows = restore_arrows
+dap.listeners.before.event_exited.custom_arrows = restore_arrows
+dap.listeners.after.disconnect.custom_arrows = restore_arrows
 
 map('<leader>db', function() dap.toggle_breakpoint() end, 'toggle [d]ebug [b]reakpoint')
 map('<leader>dB', function() dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ') end, '[d]ebug conditional [B]reakpoint')
@@ -49,5 +51,3 @@ map('<leader>dt', function() dap.terminate() end, '[d]ebug [t]erminate')
 
 map('<leader>du', function() dapui.toggle { reset = true } end, 'toggle [d]ebug [u]i')
 map('<leader>dw', function() require('dap.ui.widgets').hover() end, '[d]ebug [w]idgets')
-
-require('dap-go').setup()

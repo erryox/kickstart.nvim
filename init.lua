@@ -567,8 +567,8 @@ do
       --   i = { ['<c-enter>'] = 'to_fuzzy_refine' },
       -- },
       file_ignore_patterns = {
-        '^.git',
-        '^.idea',
+        '^%.git/',
+        '^%.idea/',
       },
     },
     -- pickers = {}
@@ -911,7 +911,9 @@ do
   -- You can press `g?` for help in this menu.
   local ensure_installed = vim.tbl_keys(servers or {})
   vim.list_extend(ensure_installed, {
-    -- You can add other tools here that you want Mason to install
+    'goimports',
+    'ruff',
+    'markdownlint',
   })
 
   require('mason-tool-installer').setup { ensure_installed = ensure_installed }
@@ -939,7 +941,7 @@ do
         python = true,
       }
       if enabled_filetypes[vim.bo[bufnr].filetype] then
-        return { timeout_ms = 5000 }
+        return {}
       else
         return nil
       end
@@ -949,7 +951,9 @@ do
     },
     -- You can also specify external formatters in here.
     formatters_by_ft = {
-      go = { 'goimports', 'gofmt', stop_after_first = true },
+      lua = { 'stylua' },
+      go = { 'goimports', 'gofmt' },
+      python = { 'ruff_format' },
       -- rust = { 'rustfmt' },
       -- Conform can also run multiple formatters sequentially
       -- python = { "isort", "black" },

@@ -6,7 +6,7 @@ local function gh(repo) return 'https://github.com/' .. repo end
 
 local map = function(keys, func, desc, mode)
   mode = mode or 'n'
-  vim.keymap.set(mode, keys, func, { desc = 'Neotest: ' .. desc })
+  vim.keymap.set(mode, keys, func, { desc = 'UI: ' .. desc })
 end
 
 local plugins = {
@@ -37,14 +37,14 @@ require('edgy').setup {
       ft = 'neo-tree',
       filter = function(buf) return vim.b[buf].neo_tree_source == 'filesystem' end,
       size = { width = 40 },
-      -- open = 'Neotree position=left filesystem',
+      open = 'Neotree position=left filesystem',
     },
     {
       title = 'Neo-Tree Git',
       ft = 'neo-tree',
       filter = function(buf) return vim.b[buf].neo_tree_source == 'git_status' end,
       size = { width = 40 },
-      -- open = 'Neotree position=right git_status',
+      open = 'Neotree position=left git_status',
     },
   },
   right = {
@@ -52,25 +52,25 @@ require('edgy').setup {
       ft = 'dapui_scopes',
       title = 'Debug Scopes',
       size = { width = 40 },
-      -- open = function() require('dapui').open() end,
+      open = function() require('dapui').open() end,
     },
     {
       ft = 'dapui_breakpoints',
       title = 'Debug Breakpoints',
       size = { width = 40 },
-      -- open = function() require('dapui').open() end,
+      open = function() require('dapui').open() end,
     },
     {
       ft = 'dapui_stacks',
       title = 'Debug Stacks',
       size = { width = 40 },
-      -- open = function() require('dapui').open() end,
+      open = function() require('dapui').open() end,
     },
     {
       ft = 'dapui_watches',
       title = 'Debug Watches',
       size = { width = 40 },
-      -- open = function() require('dapui').open() end,
+      open = function() require('dapui').open() end,
     },
     {
       ft = 'neotest-summary',
@@ -102,11 +102,10 @@ require('edgy-group').setup {
     left = {
       { icon = '', titles = { 'Neo-Tree' } },
       { icon = '', titles = { 'Neo-Tree Git' } },
-      { icon = '', titles = { 'Outline' } },
     },
     right = {
       { titles = { 'Neotest Summary' } },
-      { titles = { 'Debug Scopes', 'Debug Breakpoints', 'Debug Stack', 'Debug Watches' } },
+      { titles = { 'Debug Scopes', 'Debug Breakpoints', 'Debug Stacks', 'Debug Watches' } },
     },
   },
   statusline = {
@@ -120,8 +119,8 @@ require('edgy-group').setup {
   },
 }
 
-map('<leader>el', function() require('edgy-group').open_group_offset('right', 1) end, '')
-map('<leader>eh', function() require('edgy-group').open_group_offset('right', -1) end, '')
+map('<leader>el', function() require('edgy-group').open_group_offset('right', 1) end, 'Next right panel group')
+map('<leader>eh', function() require('edgy-group').open_group_offset('right', -1) end, 'Previous right panel group')
 
 local love_term = nil
 
@@ -132,7 +131,7 @@ vim.api.nvim_create_autocmd('User', {
     map('<leader>r', function()
       local Terminal = require('toggleterm.terminal').Terminal
       if love_term then love_term:shutdown() end
-      love_term = Terminal:new { cmd = 'love ' .. src, close_on_exit = false }
+      love_term = Terminal:new { cmd = 'love ' .. vim.fn.shellescape(src), close_on_exit = false }
       love_term:open()
     end, 'Run LÖVE')
   end,
@@ -141,6 +140,7 @@ vim.api.nvim_create_autocmd('User', {
 vim.api.nvim_create_autocmd('User', {
   pattern = 'LoveProjectLeave',
   callback = function()
+    if love_term then love_term:shutdown() end
     love_term = nil
     pcall(vim.keymap.del, 'n', '<leader>r')
   end,
