@@ -583,30 +583,37 @@ do
 
   -- See `:help telescope.builtin`
   local builtin = require 'telescope.builtin'
+
+  local function find_files() builtin.find_files { hidden = true, no_ignore = false } end
+  local function find_ignored_files() builtin.find_files { hidden = true, no_ignore = true } end
+
+  local function reuse_window(picker)
+    return function() picker { reuse_win = true } end
+  end
+
+  local lsp_references = reuse_window(builtin.lsp_references)
+  local lsp_definitions = reuse_window(builtin.lsp_definitions)
+  local lsp_type_definitions = reuse_window(builtin.lsp_type_definitions)
+
+  -- Prefer implementations; fall back to definitions when none are available.
+  local function lsp_implementations()
+    local first_client = vim.lsp.get_clients({ bufnr = 0 })[1]
+    local offset_encoding = first_client and first_client.offset_encoding or 'utf-16'
+    local params = vim.lsp.util.make_position_params(nil, offset_encoding)
+
+    vim.lsp.buf_request(0, 'textDocument/implementation', params, function(err, results, _, _)
+      if err or not results or vim.tbl_isempty(results) then
+        lsp_definitions()
+        return
+      end
+      builtin.lsp_implementations { reuse_win = true }
+    end)
+  end
+
   vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
   vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-  vim.keymap.set(
-    'n',
-    '<leader>sf',
-    function()
-      builtin.find_files {
-        hidden = true,
-        no_ignore = false,
-      }
-    end,
-    { desc = '[S]earch [F]iles' }
-  )
-  vim.keymap.set(
-    'n',
-    '<leader>si',
-    function()
-      builtin.find_files {
-        hidden = true,
-        no_ignore = true,
-      }
-    end,
-    { desc = '[S]earch [I]gnored files' }
-  )
+  vim.keymap.set('n', '<leader>sf', find_files, { desc = '[S]earch [F]iles' })
+  vim.keymap.set('n', '<leader>si', find_ignored_files, { desc = '[S]earch [I]gnored files' })
   vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
   vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
   vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
@@ -623,75 +630,30 @@ do
     callback = function(event)
       local buf = event.buf
 
-      local reuse_win = true
-
       -- Find references for the word under your cursor.
-      vim.keymap.set('n', 'grr', function()
-        builtin.lsp_references {
-          reuse_win = reuse_win,
-        }
-      end, {
-        buffer = buf,
-        desc = '[G]oto [R]eferences',
-      })
+      vim.keymap.set('n', 'grr', lsp_references, { buffer = buf, desc = '[G]oto [R]eferences' })
 
-      local function lsp_implementations_fallback_definitions()
-        local first_client = vim.lsp.get_clients({ bufnr = 0 })[1]
-        local offset_encoding = first_client and first_client.offset_encoding or 'utf-16'
+      -- Jump to the implementation of the word under your cursor.
+      -- Useful when your language has ways of declaring types without an actual implementation.
+      vim.keymap.set('n', 'gri', lsp_implementations, { buffer = buf, desc = '[G]oto [I]mplementation' })
 
-        local params = vim.lsp.util.make_position_params(nil, offset_encoding)
+      -- Jump to the definition of the word under your cursor.
+      -- This is where a variable was first declared, or where a function is defined, etc.
+      -- To jump back, press <C-t>.
+      vim.keymap.set('n', 'grd', lsp_definitions, { buffer = buf, desc = '[G]oto [D]efinition' })
 
-        vim.lsp.buf_request(0, 'textDocument/implementation', params, function(err, results, _, _)
-          if err or not results or vim.tbl_isempty(results) then
-            require('telescope.builtin').lsp_definitions {
-              reuse_win = reuse_win,
-            }
-            return
-          end
+      -- Fuzzy find all the symbols in your current document.
+      -- Symbols are things like variables, functions, types, etc.
+      vim.keymap.set('n', 'gO', builtin.lsp_document_symbols, { buffer = buf, desc = 'Open Document Symbols' })
 
-          require('telescope.builtin').lsp_implementations {
-            reuse_win = reuse_win,
-          }
-        end)
-      end
+      -- Fuzzy find all the symbols in your current workspace.
+      -- Similar to document symbols, except searches over your entire project.
+      vim.keymap.set('n', 'gW', builtin.lsp_dynamic_workspace_symbols, { buffer = buf, desc = 'Open Workspace Symbols' })
 
-      -- Jump to implementation, fallback to definition.
-      vim.keymap.set('n', 'gri', lsp_implementations_fallback_definitions, {
-        buffer = buf,
-        desc = '[G]oto [I]mplementation',
-      })
-
-      -- Jump to definition.
-      vim.keymap.set('n', 'grd', function()
-        builtin.lsp_definitions {
-          reuse_win = reuse_win,
-        }
-      end, {
-        buffer = buf,
-        desc = '[G]oto [D]efinition',
-      })
-
-      -- Fuzzy find all symbols in current document.
-      vim.keymap.set('n', 'gO', builtin.lsp_document_symbols, {
-        buffer = buf,
-        desc = 'Open Document Symbols',
-      })
-
-      -- Fuzzy find workspace symbols.
-      vim.keymap.set('n', 'gW', builtin.lsp_dynamic_workspace_symbols, {
-        buffer = buf,
-        desc = 'Open Workspace Symbols',
-      })
-
-      -- Jump to type definition.
-      vim.keymap.set('n', 'grt', function()
-        builtin.lsp_type_definitions {
-          reuse_win = reuse_win,
-        }
-      end, {
-        buffer = buf,
-        desc = '[G]oto [T]ype Definition',
-      })
+      -- Jump to the type of the word under your cursor.
+      -- Useful when you're not sure what type a variable is and you want to see
+      -- the definition of its *type*, not where it was *defined*.
+      vim.keymap.set('n', 'grt', lsp_type_definitions, { buffer = buf, desc = '[G]oto [T]ype Definition' })
     end,
   })
 
